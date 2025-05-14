@@ -60,9 +60,10 @@ public class SeauS
     
     private static PreparedStatement stmtExisteProjet;
     private static PreparedStatement stmtInsertProjet;
+    private static PreparedStatement stmtGetCommunauteNom;
     private static PreparedStatement stmtUpdateProjet;
     private static PreparedStatement stmtDeleteProjet;
-    
+    private static PreparedStatement stmtGetCompagnieNom;
     private static PreparedStatement stmtExisteCommunaute;
     private static PreparedStatement stmtInsertCommunaute;
     private static PreparedStatement stmtUpdateCommunaute;
@@ -125,6 +126,10 @@ public class SeauS
         // ceux de type Update vont faire une mise à jour d'une donnée (valeurs pour toutes les colonnes sauf l'id)
         // et ceux de type Delete vont faire une supression d'une donnée. Sauf pour le projet, on utilise le nom pour
         // trouver la donnée plutôt que l'id. Voici en exemple les requêtes pour la compagnie.
+        stmtGetCommunauteNom = cx.getConnection().prepareStatement(
+                "select nom_communaute from communaute where idcommunaute = ?");
+        stmtGetCompagnieNom = cx.getConnection().prepareStatement(
+                "select nom_compagnie from compagnie where idcompagnie = ?");
         stmtExisteCompagnie = cx.getConnection().prepareStatement(
                 "select idcompagnie, nom_compagnie, adresse from compagnie where nom_compagnie = ?");
         stmtInsertCompagnie = cx.getConnection().prepareStatement(
@@ -159,24 +164,26 @@ public class SeauS
                 "WHERE Parent.idparent = ? AND Parent.idenfant = ?");
 
         // Ce statement doit insérer un nouveau couple parent, enfant dans la table Parent
-        stmtAddParent = cx.getConnection().prepareStatement("insert into Parent (idparent, idenfant) values (?,?) (?, ?)");
+        stmtAddParent = cx.getConnection().prepareStatement("insert into Parent (idparent, idenfant) values (?,?)");
 
         // Ce statement doit supprimer un couple parent, enfant existant dans la table Parent
         stmtRemoveParent = cx.getConnection().prepareStatement("DELETE FROM Parent WHERE idparent = ? AND idenfant = ?");
 
         // Ce statement doit retourner id, nom et adresse de tous les parents d'une compagnie.
-        stmtSelectParents = cx.getConnection().prepareStatement( "SELECT c.idcompagnie, c.nom_compagnie, c.adresse " +
+        stmtSelectParents = cx.getConnection().prepareStatement(
+                "SELECT c.idcompagnie, c.nom_compagnie, c.adresse " +
                         "FROM Parent p " +
                         "JOIN Compagnie c ON p.idparent = c.idcompagnie " +
-                        "WHERE p.idenfant = ?");
+                        "WHERE p.idenfant = ?"
+        );
 
         // Statements pour les projets. On sélectionne un projet par son id (numérique).
         // N'oubliez pas les clés étrangères (idcommunaute et idcompagnie)
         stmtExisteProjet = cx.getConnection().prepareStatement("SELECT * FROM Projet WHERE idprojet = ?");
         // Laissé en exemple pour montrer l'utilisation de to_date de java.sql
         stmtInsertProjet = cx.getConnection().prepareStatement(
-                "insert into projet (idcommunaute, idcompagnie, budget_initial, budget_final, charge_projet, date_annonce, date_debut, date_fin, etat_avancement) " +
-                        "values (?, ?, ?, ?, ?, to_date(?, 'YYYY-MM-DD'), to_date(?, 'YYYY-MM-DD'), to_date(?, 'YYYY-MM-DD'), ?)");
+                "insert into projet (idcommunaute, idcompagnie, budget_initial, budget_final, charge_projet, date_annonce, date_debut, date_fin, etat_avancement) values (?, ?, ?, ?, ?, to_date(?, 'YYYY-MM-DD'), to_date(?, 'YYYY-MM-DD'), to_date(?, 'YYYY-MM-DD'), ?)");
+
         stmtUpdateProjet = cx.getConnection().prepareStatement("UPDATE Projet SET idcommunaute = ?, idcompagnie = ?, budget_initial = ?, budget_final = ?, charge_projet = ?, \" +\n" +
                 "    \"date_annonce = to_date(?, 'YYYY-MM-DD'), date_debut = to_date(?, 'YYYY-MM-DD'), date_fin = to_date(?, 'YYYY-MM-DD'), \" +\n" +
                 "    \"etat_avancement = ? WHERE idprojet = ?");
@@ -527,10 +534,15 @@ public class SeauS
             stmtUpdateCommunaute.setString(2, nation);
             stmtUpdateCommunaute.setString(3, chef);
             stmtUpdateCommunaute.setString(4, coord);
-            stmtExisteCommunaute.setString(5, nomActuel);
-            if(stmtExisteCommunaute.executeUpdate() == 0)
-                throw new SeauSException("Communauté supprimée par une autre transaction");
+            // Corrected: Set the 5th parameter on stmtUpdateCommunaute for the WHERE clause
+            stmtUpdateCommunaute.setString(5, nomActuel);
+            int rowsAffected = stmtUpdateCommunaute.executeUpdate();
 
+            if(rowsAffected == 0) {
+                // This case should ideally not be reached if the existence check passed,
+                // unless the community was deleted concurrently.
+                throw new SeauSException("Communauté supprimée par une autre transaction ou nom actuel incorrect");
+            }
             // Commit
             cx.commit();
         }
@@ -540,6 +552,7 @@ public class SeauS
             throw e;
         }
     }
+
 
     private static void supprimerCommunaute(String nom)
             throws SQLException, SeauSException
@@ -586,30 +599,49 @@ public class SeauS
             throws SQLException, SeauSException
     {
         try {
-            stmtExisteCommunaute.setString(1, nom);
-            ResultSet comm = stmtExisteCommunaute.executeQuery();
-            if(!comm.next()) {
-                comm.close();
-                throw new SeauSException("La communauté " + nom + " n'existe pas");
-            }
+            int idComm;
 
-            int idComm = comm.getInt(1);
-            comm.close();
+            stmtExisteCommunaute.setString(1, nom);
+            try (ResultSet commRs = stmtExisteCommunaute.executeQuery()) {
+                if (commRs.next()) {
+                    idComm = commRs.getInt("idcommunaute");
+                } else {
+
+                    throw new SeauSException("La communauté '" + nom + "' n'existe pas.");
+                }
+            }
 
             stmtSelectProjetsCommunaute.setInt(1, idComm);
-            ResultSet rset = stmtSelectProjetsCommunaute.executeQuery();
+            try (ResultSet projetsRs = stmtSelectProjetsCommunaute.executeQuery()) {
+                System.out.println("Liste des projets pour la communauté '" + nom + "' (ID: " + idComm + "):");
+                System.out.println("idProjet idCommunaute idCompagnie budgetInitial budgetFinal charge dateAnnonce dateDebut dateFin etatAvancement");
 
-            System.out.println("idProjet idCommunaute idCompagnie budgetInitial budgetFinal charge dateAnnonce dateDebut dateFin etatAvancement");
-            while (rset.next()) {
-                System.out.println(rset.getInt(1) + " " + rset.getInt(2) + " " + rset.getInt(3) + " " + rset.getFloat(4)
-                        + " " + rset.getFloat(5) + " " + rset.getString(6) + " " + rset.getDate(7) + " " + rset.getDate(8)
-                        + " " + rset.getDate(9) + " " + rset.getString(10));
+                boolean foundProjects = false;
+                while (projetsRs.next()) {
+                    foundProjects = true;
+                    System.out.println(
+                            projetsRs.getInt("idprojet") + " " +
+                                    projetsRs.getInt("idcommunaute") + " " +
+                                    projetsRs.getInt("idcompagnie") + " " +
+                                    projetsRs.getFloat("budget_initial") + " " +
+                                    projetsRs.getFloat("budget_final") + " " +
+                                    projetsRs.getString("charge_projet") + " " + // Ensure 'charge_projet' is correct
+                                    projetsRs.getDate("date_annonce") + " " +
+                                    projetsRs.getDate("date_debut") + " " +
+                                    projetsRs.getDate("date_fin") + " " +
+                                    projetsRs.getString("etat_avancement")
+                    );
+                }
+
+                if (!foundProjects) {
+                    System.out.println("Aucun projet trouvé pour cette communauté.");
+                }
             }
-            rset.close();
+
             cx.commit();
-        } catch (Exception e) {
+        } catch (SQLException sqlEx) {
             cx.rollback();
-            throw e;
+            throw sqlEx;
         }
     }
 
@@ -779,16 +811,15 @@ public class SeauS
             if (budgetFinal > 0 && budgetFinal < budgetInitial) {
                 throw new SeauSException("Budget final doit être >= budget initial");
             }
-
-            stmtExisteCommunaute.setInt(1, idCommunaute);  // Bien utiliser setInt pour un ID numérique
-            try (ResultSet rs = stmtExisteCommunaute.executeQuery()) {
+            stmtGetCommunauteNom.setInt(1, idCommunaute);
+            try (ResultSet rs = stmtGetCommunauteNom.executeQuery()) {
                 if (!rs.next()) {
                     throw new SeauSException("Communauté introuvable");
                 }
             }
 
-            stmtExisteCompagnie.setInt(1, idCompagnie);  // setInt pour ID numérique
-            try (ResultSet rs = stmtExisteCompagnie.executeQuery()) {
+            stmtGetCompagnieNom.setInt(1, idCompagnie);  // setInt pour ID numérique
+            try (ResultSet rs = stmtGetCompagnieNom.executeQuery()) {
                 if (!rs.next()) {
                     throw new SeauSException("Compagnie introuvable");
                 }
@@ -801,17 +832,25 @@ public class SeauS
             stmtInsertProjet.setFloat(3, budgetInitial);
             stmtInsertProjet.setFloat(4, budgetFinal);
             stmtInsertProjet.setString(5, charge);
-            stmtInsertProjet.setString(6, dateAnnonce);
-            stmtInsertProjet.setString(7, dateDebut);
-            stmtInsertProjet.setString(8, dateFin);
+            stmtInsertProjet.setDate(6, Date.valueOf(dateAnnonce));
+            stmtInsertProjet.setDate(7, Date.valueOf(dateDebut));
+            stmtInsertProjet.setDate(8, Date.valueOf(dateFin));
             stmtInsertProjet.setString(9, etatAvancement);
             stmtInsertProjet.executeUpdate();
-
+            // print sql statement
+            System.out.println("SQL Statement: " + stmtInsertProjet.toString());
             cx.commit();
 
-        } catch (Exception e) { System.out.println(stmtInsertProjet.toString());
+        } catch (SQLException e) {
+            cx.rollback();
+            throw new SQLException("Erreur SQL lors de l'ajout du projet: " + e.getMessage(), e.getSQLState(), e.getErrorCode(), e);
+        } catch (SeauSException e) {
             cx.rollback();
             throw e;
+        } catch (Exception e) {
+
+            cx.rollback();
+            throw new SeauSException("Une erreur inattendue est survenue lors de l'ajout du projet: " + e.getMessage());
         }
         // TODO : à compléter! Inspirez vous de ajouterCommunaute. Regardez editerProjet pour voir comment gérer les dates
         // Attention : ici, il n'y a pas moyen de vérifier qu'un projet existe déjà. On assume seulement que c'est un
@@ -821,25 +860,32 @@ public class SeauS
     private static void afficherProjet(int idProjet)
             throws SQLException, SeauSException
     {
-        try {
+        try
+        {
             stmtExisteProjet.setInt(1, idProjet);
-            try (ResultSet rs = stmtExisteProjet.executeQuery()) {
-                if (!rs.next()) {
-                    throw new SeauSException("Projet ID " + idProjet + " introuvable");
-                }
+            ResultSet rset = stmtExisteProjet.executeQuery();
 
-                System.out.println("Détails du projet ID " + idProjet + ":");
-                System.out.println("Communauté ID: " + rs.getInt("idcommunaute"));
-                System.out.println("Compagnie ID: " + rs.getInt("idcompagnie"));
-                System.out.println("Budget initial: " + rs.getFloat("budget_initial"));
-                System.out.println("Budget final: " + rs.getFloat("budget_final"));
-                System.out.println("Charge: " + rs.getString("charge_projet"));
-                System.out.println("Date annonce: " + rs.getDate("date_annonce"));
-                System.out.println("Date début: " + rs.getDate("date_debut"));
-                System.out.println("Date fin: " + rs.getDate("date_fin"));
-                System.out.println("État avancement: " + rs.getString("etat_avancement"));
+            if (rset.next()) // Crucial: Check if a row exists and move cursor
+            {
+                System.out.println("Détails du Projet ID: " + rset.getInt("idprojet"));
+                System.out.println("  ID Communauté: " + rset.getInt("idcommunaute"));
+                // To display names, you might need stmtGetCommunauteNom similar to how it's done elsewhere
+                // For now, displaying IDs.
+                System.out.println("  ID Compagnie: " + rset.getInt("idcompagnie"));
+                // To display names, you might need stmtGetCompagnieNom
+                System.out.println("  Budget Initial: " + rset.getFloat("budget_initial"));
+                System.out.println("  Budget Final: " + rset.getFloat("budget_final"));
+                System.out.println("  Chargé de projet: " + rset.getString("charge_projet"));
+                System.out.println("  Date Annonce: " + rset.getDate("date_annonce"));
+                System.out.println("  Date Début: " + rset.getDate("date_debut"));
+                System.out.println("  Date Fin: " + rset.getDate("date_fin"));
+                System.out.println("  État Avancement: " + rset.getString("etat_avancement"));
             }
-
+            else
+            {
+                throw new SeauSException("Projet " + idProjet + " inexistant.");
+            }
+            rset.close();
             cx.commit();
         } catch (Exception e) {
             cx.rollback();
@@ -921,7 +967,7 @@ public class SeauS
         {
             // 1. On Vérifie si la compagnie parente existe :
             stmtExisteCompagnie.setString(1, nomParent);
-            ResultSet rsetParent = stmtExisteProjet.executeQuery();
+            ResultSet rsetParent = stmtExisteCompagnie.executeQuery();
             if (!rsetParent.next())
             {
                 rsetParent.close();
@@ -932,10 +978,17 @@ public class SeauS
             rsetParent.close();
 
             // 3. On vérifie si la compagnie enfant existe (à compléter)!!!:
-
+            stmtExisteCompagnie.setString(1, nomEnfant);
+            ResultSet rsetEnfant = stmtExisteCompagnie.executeQuery();
+            if (!rsetEnfant.next())
+            {
+                rsetEnfant.close();
+                throw new SeauSException("Enfant n'existe pas: " + nomEnfant);
+            }
 
             // 4. On obtient l'id de l'enfant avec le resultSet puis on ferme le ResultSet:
-            int idEnfant = 0;
+            int idEnfant = rsetEnfant.getInt("idcompagnie");
+
 
             // 5. On vérifie si la relation dans la table existe déjà entre les 2. Si oui, il faut lancer une exception.
             stmtExisteParent.setInt(1, idParent);
@@ -1007,9 +1060,9 @@ public class SeauS
             rset.close();
 
             // 6. Ajouter la relation
-            stmtAddParent.setInt(1, idParent);
-            stmtAddParent.setInt(2, idEnfant);
-            stmtAddParent.executeUpdate();
+            stmtRemoveParent.setInt(1, idParent);
+            stmtRemoveParent.setInt(2, idEnfant);
+            stmtRemoveParent.executeUpdate();
 
             // Commit
             cx.commit();
