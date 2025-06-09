@@ -6,25 +6,21 @@ import SeauS.objets.Compagnie;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
-import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.model.Updates;
 
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class Parents extends GestionTables {
     private final MongoCollection<Document> collectionCompagnies;
     private final Connexion cx;
 
 
-    public Parents(Connexion cx, MongoCollection<Document> collectionCompagnies) {
+    public Parents(Connexion cx) {
         super(cx);
         this.cx = cx;
         this.collectionCompagnies = cx.getDatabase().getCollection("Compagnies");

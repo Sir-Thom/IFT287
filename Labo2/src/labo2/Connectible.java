@@ -41,6 +41,7 @@ public class Connectible extends ObjetXMLJSON
         m_hasEndRadius = false;
         this.m_hasLength = false;
         this.m_hasVolume = false;
+
     }
     
     // Constructeur pour la partie B du devoir
@@ -68,11 +69,12 @@ public class Connectible extends ObjetXMLJSON
         }
 
         n = obj.getJsonNumber("volume");
+
         if (n != null) {
             this.m_volume = n.doubleValue();
             this.m_hasVolume = true;
         }
-        // if ...
+
     }
     
     public void setStartRadius(double v)
@@ -107,13 +109,21 @@ public class Connectible extends ObjetXMLJSON
         g.write("type", m_connectibleType);
         g.write("name", m_connectibleName);
         g.write("id", m_id);
-        if(m_hasStartRadius)
+
+
+        // Only write these if they were present in the input XML
+        if(m_hasStartRadius) {
             g.write("startRadius", m_startRadius);
+        }
         if(m_hasEndRadius) {
-            g.write("endRadius", this.m_endRadius);
+            g.write("endRadius", m_endRadius);
         }
         if(m_hasLength){
-            g.write("length", this.m_length);
+            g.write("length", m_length);
+        }
+
+        if (m_hasVolume) {
+            g.write("volume", m_volume);
         }
 
         g.writeEnd();
@@ -126,14 +136,20 @@ public class Connectible extends ObjetXMLJSON
         Element e = d.createElement(m_connectibleType);
         e.setAttribute("name", m_connectibleName);
         e.setAttribute("id", Integer.toString(m_id));
-        if(m_hasStartRadius)
+
+        if(m_hasStartRadius) {
             e.setAttribute("startRadius", Double.toString(m_startRadius));
-        if(m_hasEndRadius)
+
+        }
+        if(m_hasEndRadius) {
             e.setAttribute("endRadius", Double.toString(m_endRadius));
-        if(m_hasLength)
-            e.setAttribute("length", Double.toString(this.m_length));
-        if(m_hasVolume)
-            e.setAttribute("volume", Double.toString(this.m_volume));
+        }
+        if(m_hasLength) {
+            e.setAttribute("length", Double.toString(m_length));
+        }
+        if (m_hasVolume) {
+            e.setAttribute("volume", Double.toString(m_volume));
+        }
 
         return e;
     }

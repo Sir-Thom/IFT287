@@ -28,7 +28,7 @@ public class GestionSeauS {
 
         gestionCommunaute = new GestionCommunaute(communautes, projets);
         gestionCompagnie = new GestionCompagnie(compagnies, parents, projets);
-        gestionProjet = new GestionProjet(projets);
+        gestionProjet = new GestionProjet(projets,communautes,compagnies);
     }
 
 

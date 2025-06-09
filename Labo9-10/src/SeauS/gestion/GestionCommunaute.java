@@ -20,7 +20,7 @@ public class GestionCommunaute extends GestionTransactions {
         this.projets = projets;
     }
 
-    
+
     public void ajouterCommunaute(String nom, String nation, String chef, String coord) throws SeauSException {
         if (communautes.existe(nom)) {
             throw new SeauSException("Une communauté avec le nom '" + nom + "' existe déjà.");
@@ -31,99 +31,57 @@ public class GestionCommunaute extends GestionTransactions {
 
 
 
-    public void editerCommunaute(String nomActuel, String nouveauNom, String nation, String chef, String coord)
-            throws SQLException, SeauSException {
-        try {
-            cx.demarreTransaction();
+    public void editerCommunaute(String nomActuel, String nouveauNom, String nation, String chef, String coord) throws SeauSException {
+    Communaute communaute = communautes.getCommunauteByNom(nomActuel);
+        if (communaute == null) {
+        throw new SeauSException("La communauté '" + nomActuel + "' n'existe pas.");
+    }
 
-            Communaute existante = communautes.getCommunauteByNom(nomActuel);
-            if (existante == null) {
-                throw new SeauSException("Communauté n'existe pas : " + nomActuel);
-            }
+    // Vérifie si le nouveau nom est déjà pris par une autre communauté
+        if (!nomActuel.equals(nouveauNom) && communautes.existe(nouveauNom)) {
+        throw new SeauSException("Une autre communauté avec le nom '" + nouveauNom + "' existe déjà.");
+    }
 
-            if (!nomActuel.equals(nouveauNom) && communautes.existe(nouveauNom)) {
-                throw new SeauSException("Une autre communauté avec le nom '" + nouveauNom + "' existe déjà.");
-            }
+    // Met à jour les propriétés de l'objet
+        communaute.setNom(nouveauNom);
+        communaute.setNation(nation);
+        communaute.setChef(chef);
+        communaute.setCoord(coord);
 
-            existante.setNom(nouveauNom);
-            existante.setNation(nation);
-            existante.setChef(chef);
-            existante.setCoord(coord);
-
-            cx.commit();
-        } catch (SeauSException e) {
-            if (cx.getConnection().getTransaction().isActive()) cx.rollback();
-            throw e;
-        } catch (Exception e) {
-            if (cx.getConnection().getTransaction().isActive()) cx.rollback();
-            throw new SeauSException("Erreur lors de la modification: " + e.getMessage());
-        }
+    // Persiste les changements dans la base de données
+        communautes.modifierCommunaute(communaute);
     }
 
     public void supprimerCommunaute(String nom)
             throws SQLException, SeauSException {
-        try {
-            cx.demarreTransaction();
+        Communaute communaute = communautes.getCommunauteByNom(nom);
+        if (communaute == null) {
+            throw new SeauSException("La communauté '" + nom + "' n'existe pas.");
+        }
 
-            Communaute c = communautes.getCommunauteByNom(nom);
-            if (c == null) {
-                throw new SeauSException("Communauté n'existe pas : " + nom);
-            }
+        if (!projets.getProjetsPourCommunaute(communaute.getIdCommunaute()).isEmpty()) {
+            throw new SeauSException("Impossible de supprimer la communauté '" + nom + "' car des projets y sont associés.");
+        }
 
-            communautes.supprimerCommunaute(nom);
-
-            cx.commit();
-        } catch (SeauSException e) {
-            if (cx.getConnection().getTransaction().isActive()) cx.rollback();
-            throw e;
-        } catch (Exception e) {
-            if (cx.getConnection().getTransaction().isActive()) cx.rollback();
-            throw new SeauSException("Erreur lors de la suppression: " + e.getMessage());
+        if (!communautes.supprimerCommunaute(nom)) {
+            throw new SeauSException("La suppression de la communauté '" + nom + "' a échoué.");
         }
     }
 
     public Communaute afficherCommunaute(String nom) throws SQLException, SeauSException {
-        try {
-            cx.demarreTransaction();
-
-            Communaute communaute = communautes.getCommunauteByNom(nom);
-            if (communaute == null) {
-                throw new SeauSException("Communauté n'existe pas : " + nom);
-            }
-
-            cx.commit();
-            System.out.println(communaute);
-            return communaute;
-        } catch (SeauSException e) {
-            if (cx.getConnection().getTransaction().isActive()) cx.rollback();
-            throw e;
-        } catch (Exception e) {
-            if (cx.getConnection().getTransaction().isActive()) cx.rollback();
-            throw new SeauSException("Erreur lors de la récupération: " + e.getMessage());
+        Communaute communaute = communautes.getCommunauteByNom(nom);
+        if (communaute == null) {
+            throw new SeauSException("La communauté '" + nom + "' n'existe pas.");
         }
+        return communaute;
     }
 
-    public List<Projet> afficherProjetsCommunaute(String nomCommunaute)
-            throws SQLException, SeauSException {
-        try {
-            cx.demarreTransaction();
 
-            Communaute communaute = communautes.getCommunauteByNom(nomCommunaute);
-            if (communaute == null) {
-                throw new SeauSException("La communauté '" + nomCommunaute + "' n'a pas été trouvée.");
-            }
-
-            List<Projet> result = projets.getProjetsPourCommunaute(communaute.getIdCommunaute());
-
-            cx.commit();
-            System.out.println(result.toString());
-            return result;
-        } catch (SeauSException e) {
-            if (cx.getConnection().getTransaction().isActive()) cx.rollback();
-            throw e;
-        } catch (Exception e) {
-            if (cx.getConnection().getTransaction().isActive()) cx.rollback();
-            throw new SeauSException("Erreur système: " + e.getMessage());
+    public List<Projet> afficherProjetsCommunaute(String nomCommunaute) throws SeauSException {
+        Communaute communaute = communautes.getCommunauteByNom(nomCommunaute);
+        if (communaute == null) {
+            throw new SeauSException("La communauté '" + nomCommunaute + "' n'existe pas.");
         }
+        return projets.getProjetsPourCommunaute(communaute.getIdCommunaute());
     }
 }

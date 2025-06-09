@@ -61,7 +61,9 @@ public class Projets {
 
     }
 
-
+    public void modifierProjet(Projet projet){
+        collectionProjets.updateOne(eq("id", projet.getId()), projet.toDocument());
+    }
 
 
     public boolean supprimerProjet(int idProjet) {

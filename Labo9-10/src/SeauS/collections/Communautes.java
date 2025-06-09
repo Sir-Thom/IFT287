@@ -45,6 +45,10 @@ public class Communautes extends GestionTables {
 
     }
 
+    public void modifierCommunaute(Communaute communaute) {
+        collectionCommunautes.updateOne(eq("nom", communaute.getNom()), communaute.toDocument());
+    }
+
 
     public Boolean supprimerCommunaute(String nom) {
         DeleteResult result = collectionCommunautes.deleteOne(eq("nom", nom));

@@ -46,6 +46,10 @@ public class Compagnies extends GestionTables {
         collectionCompagnies.insertOne(compagnie.toDocument());
     }
 
+    public void modifierCompagnie(Compagnie compagnie) {
+        collectionCompagnies.updateOne(eq("nom", compagnie.getNomCompagnie()), compagnie.toDocument());
+    }
+
 
     public boolean supprimerCompagnie(String nomCompagnie) {
         DeleteResult result = collectionCompagnies.deleteOne(eq("nomCompagnie", nomCompagnie));

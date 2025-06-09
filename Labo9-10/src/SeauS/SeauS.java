@@ -1,6 +1,7 @@
 package SeauS;
 
 import SeauS.bdd.Connexion;
+import SeauS.gestion.EtatProjet;
 
 import java.io.*;
 import java.sql.SQLException;
@@ -273,7 +274,7 @@ public class SeauS
                 String dateDebut = readDate(tokenizer);
                 String dateFin = readDate(tokenizer);
                 String etatAvancement = readString(tokenizer);
-                seaus.getGestionProjet().ajouterProjet(idCommunaute, idCompagnie, budgetInitial, budgetFinal, charge, dateAnnonce, dateDebut, dateFin, etatAvancement);
+                seaus.getGestionProjet().ajouterProjet(idCommunaute, idCompagnie, budgetInitial, budgetFinal, charge, dateAnnonce, dateDebut, dateFin, EtatProjet.valueOf(etatAvancement));
             }
             // *******************
             // EDITER PROJET
@@ -290,7 +291,7 @@ public class SeauS
                 String dateDebut = readDate(tokenizer);
                 String dateFin = readDate(tokenizer);
                 String etatAvancement = readString(tokenizer);
-                seaus.getGestionProjet().editerProjet(idProjet, idCommunaute, idCompagnie, budgetInitial, budgetFinal, charge, dateAnnonce, dateDebut, dateFin, etatAvancement);
+                seaus.getGestionProjet().editerProjet(idProjet, idCommunaute, idCompagnie, budgetInitial, budgetFinal, charge, dateAnnonce, dateDebut, dateFin, EtatProjet.valueOf(etatAvancement));
             }
             // *******************
             // AFFICHER PROJET
