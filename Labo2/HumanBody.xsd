@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="urn:ift287:HumanBody:element"
+		   xmlns="urn:ift287:HumanBody:element"
+           elementFormDefault="qualified" >
+  <xs:element name="MainBody">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Systems" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="System" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>                
+                    <xs:element name="Flow" minOccurs="1" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:sequence>                      
+                          <xs:element name="Connectible" minOccurs="1" maxOccurs="1">
+                            <xs:complexType>
+                              <xs:choice minOccurs="1" maxOccurs="unbounded">
+                                <xs:element name="DigestiveTract" type="ConnectibleType"/>
+                                <xs:element name="StomachTract" type="ConnectibleType"/>
+                                <xs:element name="DuodenumTract" type="ConnectibleType"/>
+                                <xs:element name="Nose" type="ConnectibleType"/>
+                                <xs:element name="AirConnectible" type="ConnectibleType"/>
+                                <xs:element name="Alveoli" type="ConnectibleType"/>
+                                <xs:element name="Artery" type="ConnectibleType"/>
+                                <xs:element name="Vein" type="ConnectibleType"/>
+                                <xs:element name="Capillaries" type="ConnectibleType"/>
+                                <xs:element name="Atrium" type="ConnectibleType"/>
+                                <xs:element name="Ventricle" type="ConnectibleType"/>
+                                <xs:element name="RectumTract" type="ConnectibleType"/>
+                                <xs:element name="BiDuct" type="ConnectibleType"/>
+                                <xs:element name="Duct" type="ConnectibleType"/>
+                                <xs:element name="DuctOverflowableJunction" type="ConnectibleType"/>
+                                <xs:element name="DeversingDuct" type="ConnectibleType"/>
+                                <xs:element name="InnerGallbladder" type="ConnectibleType"/>
+                                <xs:element name="SalivaryDuct" type="ConnectibleType"/>
+                              </xs:choice>
+                            </xs:complexType>
+                          </xs:element>                          
+                          <xs:element name="Connections" minOccurs="1" maxOccurs="1">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="Connection" minOccurs="0" maxOccurs="unbounded" >
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="to" minOccurs="1" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                          <xs:attribute name="id" type="xs:unsignedByte" use="required" />
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="id" type="xs:unsignedByte" use="required" />
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>                        
+                        </xs:sequence>
+                        <xs:attribute name="id" type="xs:unsignedByte" use="required" />
+                        <xs:attribute name="name" type="xs:string" use="required" />
+                      </xs:complexType>
+                    </xs:element>                  
+                  </xs:sequence>
+                  <xs:attribute name="name" type="xs:string" use="required" />
+                  <xs:attribute name="id" type="xs:unsignedByte" use="required" />
+                  <xs:attribute name="type" type="xs:unsignedByte" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+		</xs:element>
+        <xs:element name="Organs" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Organ" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:attribute name="name" type="xs:string" use="required" />
+                  <xs:attribute name="id" type="xs:unsignedByte" use="required" />
+                  <xs:attribute name="systemID" type="xs:unsignedByte" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="bodyName" type="xs:string" use="required" />
+      <xs:attribute name="bodyID" type="xs:unsignedByte" use="required" />
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:complexType name="ConnectibleType">
+    <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="id" type="xs:unsignedByte" use="required" />
+    <xs:attribute name="startRadius" type="xs:decimal" use="optional" />
+    <xs:attribute name="endRadius" type="xs:decimal" use="optional" />
+    <xs:attribute name="length" type="xs:decimal" use="optional" />
+    <xs:attribute name="volume" type="xs:decimal" use="optional" />
+  </xs:complexType>
+</xs:schema>

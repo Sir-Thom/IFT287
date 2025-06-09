@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!ELEMENT MainBody (Systems, Organs)>
+<!ATTLIST MainBody
+    bodyName CDATA #REQUIRED
+	bodyID CDATA #REQUIRED>
+
+<!ELEMENT Systems (System*)>
+<!ELEMENT Organs (Organ*)>
+
+<!ELEMENT System (Flow+)>
+<!ATTLIST System
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	type CDATA #REQUIRED>
+
+<!ELEMENT Flow (Connectible, Connections)>
+<!ATTLIST Flow
+    id CDATA #REQUIRED
+	name CDATA #REQUIRED>
+
+<!ELEMENT Connectible (Atrium|Ventricle|Artery|Vein|Capillaries|Nose|AirConnectible|Alveoli|DigestiveTract|StomachTract|DuodenumTract|RectumTract|BiDuct|Duct|DuctOverflowableJunction|DeversingDuct|InnerGallbladder|SalivaryDuct)+>
+
+<!ELEMENT Connections (Connection)*>
+
+<!ELEMENT Connection (to)+>
+<!ATTLIST Connection
+    id CDATA #REQUIRED>
+
+<!ELEMENT to EMPTY>
+<!ATTLIST to
+    id CDATA #REQUIRED>
+	
+<!ELEMENT Atrium EMPTY>
+<!ATTLIST Atrium
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+
+<!ELEMENT Ventricle EMPTY>
+<!ATTLIST Ventricle
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+
+<!ELEMENT Artery EMPTY>
+<!ATTLIST Artery
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+
+<!ELEMENT Vein EMPTY>
+<!ATTLIST Vein
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT Capillaries EMPTY>
+<!ATTLIST Capillaries
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT Nose EMPTY>
+<!ATTLIST Nose
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT AirConnectible EMPTY>
+<!ATTLIST AirConnectible
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT Alveoli EMPTY>
+<!ATTLIST Alveoli
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT DigestiveTract EMPTY>
+<!ATTLIST DigestiveTract
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT StomachTract EMPTY>
+<!ATTLIST StomachTract
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT DuodenumTract EMPTY>
+<!ATTLIST DuodenumTract
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT RectumTract EMPTY>
+<!ATTLIST RectumTract
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT BiDuct EMPTY>
+<!ATTLIST BiDuct
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT Duct EMPTY>
+<!ATTLIST Duct
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT DuctOverflowableJunction EMPTY>
+<!ATTLIST DuctOverflowableJunction
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT DeversingDuct EMPTY>
+<!ATTLIST DeversingDuct
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT InnerGallbladder EMPTY>
+<!ATTLIST InnerGallbladder
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+	
+<!ELEMENT SalivaryDuct EMPTY>
+<!ATTLIST SalivaryDuct
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	startRadius CDATA #IMPLIED
+	endRadius CDATA #IMPLIED
+	length CDATA #IMPLIED
+	volume CDATA #IMPLIED>
+
+<!ELEMENT Organ EMPTY>
+<!ATTLIST Organ
+    name CDATA #REQUIRED
+	id CDATA #REQUIRED
+	systemID CDATA #REQUIRED>
